@@ -9,13 +9,14 @@ const getUsers = `
 `;
 
 const getUserIdAndRole = `
-      SELECT u.id, u.email, r.name as role
+      SELECT u.id, u.email, ARRAY_AGG(r.name) as roles
       FROM users u
       JOIN user_roles ur
       ON u.id = ur.user_id
       JOIN roles r
       ON ur.role_id = r.id
-      WHERE u.id = $1;
+      WHERE u.id = $1
+      GROUP BY u.id, u.email
 `;
 
 const getUserRoles = `

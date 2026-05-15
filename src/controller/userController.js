@@ -1,109 +1,21 @@
 const pool = require("../config/db");
-const { hashPassword } = require("../utils/hash");
-const {
-  getUserByEmail,
-  addUser,
-  getRoleIds,
-  assignRoles,
-  removeUser,
-  getUserIdAndRole,
-  getAllUsers
-} = require("../service/userService");
 
-const { addEmployee } = require('../service/employeeService');
+const userService = require("../service/userService");
 
 // Logic for create a user
 const createUser = async (req, res, next) => {
-
-  const { 
-      name, email, password, roles, 
-      employee_code, first_name, last_name, 
-      department, designation,
-      employment_type, gender, phone_number, date_of_joining
-  } = req.body;
-
-    if (!name || !password || !email) {
-      return res.status(400).json({
-        success: false,
-        message: "Name, email and password are required",
-      });
-    }
-
-  const client = await pool.connect();
-
   try {
-
-    await client.query('BEGIN'); //initiates the transaction
-
-    
-
-    // check existing user
-
-    const existingUser = await getUserByEmail(email);
-    
-    if (existingUser) {
-      return res.status(409).json({
-        success: false,
-        message: "Email already exists",
-      });
-    }
-
-    // Hash Password
-    const hashedPassword = await hashPassword(password);
-
-    // create user
-    const user = await addUser(client, { name, email, hashedPassword });
-
-    if (roles && Array.isArray(roles) && roles.length > 0) {
-      // Get role IDs
-      const roleIds = await getRoleIds(roles);
-
-      if(roleIds.length != roles.length) {
-        throw new Error("One or more roles are invalid!");
-      }
-
-      for (let roleId of roleIds) {
-        await assignRoles(client, user.id, roleId);
-      }
-    }
-
-    // create Employee
-
-    const employee = await addEmployee(
-      client, 
-      {
-        user_id: user.id,
-        employee_code,
-        first_name,
-        last_name,
-        department, 
-        designation,
-        employment_type,
-        gender,
-        phone_number,
-        date_of_joining
-      }
-    );
-
-    await client.query('COMMIT'); // saves the data in the table if nothing goes wrong
+    const result = await userService.createNewUser(req.body);
 
     return res.status(201).json({
       success: true,
-      message: "User and Employee Created.",
-      user,
-      employee
+      ...result,
     });
-
   } catch (err) {
-
-    await client.query('ROLLBACK');
-    return res.status(400).json({
+    return res.status(500).json({
       success: false,
       message: err.message,
     });
-
-  } finally {
-    client.release(); // ends the transaction
   }
 };
 
@@ -120,30 +32,11 @@ const deleteUser = async (req, res) => {
       });
     }
 
-    const user = await getUserIdAndRole(id);
-    console.log('User', user);
-
-    // check user exists
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
-    }
-
-    // Prevent deleting another admin
-    if (user.roles.includes( "Admin")) {
-      return res.status(500).json({
-        success: false,
-        message: "Admin cannot delete another admin",
-      });
-    }
-
-    await removeUser(id);
+    const result = await userService.deleteUser(id);
 
     return res.status(200).json({
       success: true,
-      message: "User is successfully deleted.",
+      ...result,
     });
   } catch (err) {
     return res.status(500).json({
@@ -155,35 +48,27 @@ const deleteUser = async (req, res) => {
 
 // Get all users
 const getUsers = async (req, res) => {
-
   try {
-    const users = await getAllUsers();
+    const users = await userService.getAllUsers();
 
-    if(users.length === 0) {
+    if (users.length === 0) {
       return res.status(404).json({
         success: false,
-        message: "No users available"
+        message: "No users available",
       });
     }
 
     return res.status(200).json({
       success: true,
-      users
+      users,
     });
-
-  }
-  catch(err) {
-
+  } catch (err) {
     return res.status(500).json({
-      success: false, 
-      message: err.message
+      success: false,
+      message: err.message,
     });
-
   }
-
-
-
-}
+};
 
 module.exports = {
   createUser,

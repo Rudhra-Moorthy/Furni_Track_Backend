@@ -3,6 +3,7 @@ const cors = require("cors");
 
 const loginRouter = require("./routes/loginRouter");
 const userRouter = require("./routes/userRouter");
+const productRouter = require("./routes/productRouter");
 
 // App
 const app = express();
@@ -12,5 +13,6 @@ app.use(cors());
 
 app.use("/api/auth", loginRouter);
 app.use("/api/users", userRouter);
+app.use("/api/products", productRouter);
 
 module.exports = app;
