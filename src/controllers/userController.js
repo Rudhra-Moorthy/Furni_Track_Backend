@@ -1,4 +1,4 @@
-const pool = require("../config/db");
+const userDto = require('../dto/userDto');
 
 const userService = require("../services/userService");
 
@@ -12,7 +12,7 @@ const createUser = async (req, res, next) => {
       ...result,
     });
   } catch (err) {
-    return res.status(500).json({
+    return res.status(err.statusCode || 500).json({
       success: false,
       message: err.message,
     });
@@ -21,6 +21,7 @@ const createUser = async (req, res, next) => {
 
 // Delete User
 const deleteUser = async (req, res) => {
+  
   try {
     const { id } = req.params;
 
@@ -38,40 +39,67 @@ const deleteUser = async (req, res) => {
       success: true,
       ...result,
     });
+
   } catch (err) {
-    return res.status(500).json({
+
+    return res.status(err.statusCode || 500).json({
       success: false,
       message: err.message,
     });
+
   }
 };
 
 // Get all users
 const getUsers = async (req, res) => {
-  try {
-    const users = await userService.getAllUsers();
 
-    if (users.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "No users available",
-      });
-    }
+  try {
+
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 5;
+    const search = req.query.search || "";
+
+    const users = await userService.getUsers(page, limit, search);
 
     return res.status(200).json({
       success: true,
       users,
     });
+
   } catch (err) {
-    return res.status(500).json({
+
+    return res.status(err.statusCode || 500).json({
       success: false,
       message: err.message,
     });
+
   }
+};
+
+const updateUser = async (req, res) => {
+
+  try {
+    const updatedUser = await userService.updateUser(req.params.id, req.body);
+
+    return res.status(200).json({
+      success: true,
+      message: "Updated successfully",
+      user : userDto(updatedUser)
+    });
+
+  } catch (err) {
+
+    return res.status(err.statusCode || 500).json({
+      success: false,
+      message: err.message
+    });
+  }
+
 };
 
 module.exports = {
   createUser,
   deleteUser,
   getUsers,
+  updateUser,
 };

@@ -4,8 +4,31 @@ const getUserByEmail = `
 `;
 
 const getUsers = `
-      SELECT * 
-      FROM users
+      SELECT u.id, u.name, u.email, ARRAY_AGG(r.name) AS roles
+      FROM users u
+      LEFT JOIN user_roles ur
+      ON u.id = ur.user_id
+      LEFT JOIN roles r
+      ON ur.role_id = r.id
+      WHERE u.deleted_at IS NULL
+      GROUP BY u.id
+      ORDER BY u.created_at DESC
+      LIMIT $1 OFFSET $2
+`;
+
+const getUserById = `
+      SELECT * FROM users
+      WHERE id = $1 AND deleted_at IS NULL
+`;
+
+const updateUser = `
+      UPDATE users 
+      SET
+        name = $1,
+        email = $2,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = $3
+      RETURNING *;
 `;
 
 const getUserIdAndRole = `
@@ -45,7 +68,9 @@ const assignRoles = `
 
 const removeUser = `
       UPDATE users 
-      SET is_active = false 
+      SET 
+        is_active = false, 
+        deleted_at = CURRENT_TIMESTAMP
       WHERE id = $1
 `;
 
@@ -79,4 +104,6 @@ module.exports = {
   getPermissions,
   getRoleById,
   getUsers,
+  getUserById,
+  updateUser,
 };

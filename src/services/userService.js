@@ -2,6 +2,7 @@ const pool = require("../config/db");
 const user = require("../repositories/userRepo");
 const { hashPassword } = require("../utils/hash");
 const { addEmployee } = require("../services/employeeService");
+const userDto = require("../dto/userDto");
 
 // create new user
 const createNewUser = async (data) => {
@@ -22,9 +23,11 @@ const createNewUser = async (data) => {
   } = data;
 
   if (!name || !password || !email) {
-    throw new Error(
+    const err = new Error(
       "Name, email and password are required to create new user.",
     );
+    err.statusCode = 400;
+    throw err;
   }
 
   const client = await pool.connect();
@@ -36,7 +39,9 @@ const createNewUser = async (data) => {
     const existingUser = await getUserByEmail(email);
 
     if (existingUser) {
-      throw new Error("Email already exists");
+      const err = new Error("Email already exists");
+      err.statusCode = 409;
+      throw err;
     }
 
     // Hash Password
@@ -50,7 +55,9 @@ const createNewUser = async (data) => {
       const roleIds = await getRoleIds(roles);
 
       if (roleIds.length != roles.length) {
-        throw new Error("One or more roles are invalid!");
+        const err = new Error("One or more roles are invalid!");
+        err.statusCode = 400;
+        throw err;
       }
 
       for (let roleId of roleIds) {
@@ -100,12 +107,16 @@ const deleteUser = async (id) => {
 
     // check user exists
     if (!user) {
-      throw new Error("User not found");
+      const err = new Error("User not found");
+      err.statusCode = 404;
+      throw err;
     }
 
     // Prevent deleting another admin
     if (user.roles.includes("Admin")) {
-      throw new Error("Admin cannot delete another admin");
+      const err = new Error("Admin cannot delete another admin");
+      err.statusCode = 403;
+      throw err;
     }
 
     await removeUser(client, id);
@@ -123,6 +134,34 @@ const deleteUser = async (id) => {
   }
 };
 
+// Update User
+const updateUser = async (id, { name, email }) => {
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN"); // Starts the transaction
+
+    const existingUser = await client.query(user.getUserById, [id]);
+
+    if (!existingUser.rows[0]) {
+      const err = new Error("User not found");
+      err.statusCode = 404;
+      throw err;
+    }
+
+    const updatedUser = await client.query(user.updateUser, [name, email, id]);
+
+    await client.query("COMMIT");
+
+    return updatedUser.rows[0];
+  } catch (err) {
+    await client.query("ROLLBACK");
+    throw err;
+  } finally {
+    client.release();
+  }
+};
+
 // Get User by Email
 const getUserByEmail = async (email) => {
   const result = await pool.query(user.getUserByEmail, [email]);
@@ -130,9 +169,14 @@ const getUserByEmail = async (email) => {
 };
 
 // Get users details
-const getAllUsers = async () => {
-  const result = await pool.query(user.getUsers);
-  return result.rows;
+const getUsers = async (page, limit, search) => {
+  try {
+    const offset = (page - 1) * limit;
+    const users = await pool.query(user.getUsers, [limit, offset]);
+    return users.rows.map(userDto);
+  } catch (err) {
+    throw err;
+  }
 };
 
 const getUserIdAndRole = async (id) => {
@@ -190,6 +234,7 @@ module.exports = {
   assignRoles,
   removeUser,
   getUserIdAndRole,
-  getAllUsers,
+  getUsers,
   getPermissions,
+  updateUser,
 };

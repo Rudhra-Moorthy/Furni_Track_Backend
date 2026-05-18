@@ -1,8 +1,4 @@
-const {
-  getUserByEmail,
-  getUserRoles,
-  getPermissions,
-} = require("../services/userService");
+const userService = require("../services/userService");
 const { hashPassword, comparePassword } = require("../utils/hash");
 const { generateToken } = require("../services/tokenService");
 
@@ -18,7 +14,7 @@ const login = async (req, res) => {
       });
     }
 
-    const user = await getUserByEmail(email);
+    const user = await userService.getUserByEmail(email);
 
     if (!user) {
       return res.status(401).json({
@@ -38,10 +34,10 @@ const login = async (req, res) => {
     }
 
     // User roles
-    const roles = await getUserRoles(user.id);
+    const roles = await userService.getUserRoles(user.id);
     console.log(roles);
     // get permissions
-    const permissions = await getPermissions(user.id);
+    const permissions = await userService.getPermissions(user.id);
     console.log(permissions);
 
     const token = generateToken({
