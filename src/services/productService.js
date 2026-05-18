@@ -1,8 +1,7 @@
 const pool = require("../config/db");
-const productRepo = require("../query/productQuery");
+const productRepo = require("../repositories/productRepo");
 
 const addProduct = async (product) => {
-
   const client = await pool.connect();
 
   try {

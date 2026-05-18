@@ -1,10 +1,13 @@
-const { getUserByEmail, getUserRoles, getPermissions } = require("../service/userService");
+const {
+  getUserByEmail,
+  getUserRoles,
+  getPermissions,
+} = require("../services/userService");
 const { hashPassword, comparePassword } = require("../utils/hash");
-const { generateToken } = require("../service/tokenService");
+const { generateToken } = require("../services/tokenService");
 
 // login api
 const login = async (req, res) => {
-  
   try {
     const { email, password } = req.body;
 
@@ -41,7 +44,12 @@ const login = async (req, res) => {
     const permissions = await getPermissions(user.id);
     console.log(permissions);
 
-    const token = generateToken({ id: user.id, email: user.email, roles, permissions });
+    const token = generateToken({
+      id: user.id,
+      email: user.email,
+      roles,
+      permissions,
+    });
 
     return res.status(200).json({
       success: true,

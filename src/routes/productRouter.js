@@ -1,8 +1,8 @@
 const express = require("express");
-const productController = require("../controller/productController");
+const productController = require("../controllers/productController");
 const router = express.Router();
-const authenticate = require("../middleware/authenticate");
-const authorize = require("../middleware/authorize");
+const authenticate = require("../middlewares/authenticate");
+const authorize = require("../middlewares/authorize");
 
 // post request
 router.post(

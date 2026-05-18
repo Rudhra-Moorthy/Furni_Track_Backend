@@ -1,6 +1,6 @@
 const pool = require("../config/db");
 
-const userService = require("../service/userService");
+const userService = require("../services/userService");
 
 // Logic for create a user
 const createUser = async (req, res, next) => {

@@ -1,5 +1,5 @@
 const pool = require("../config/db");
-const et = require("../query/employmentTypeQuery");
+const et = require("../repositories/employmentTypeRepo");
 
 const getEmploymentTypeId = async (name) => {
   const result = await pool.query(et.getEmploymentTypeId, [name]);

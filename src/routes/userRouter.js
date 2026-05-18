@@ -1,9 +1,9 @@
 const express = require("express");
 const router = express.Router();
 
-const authenticate = require("../middleware/authenticate");
-const authorize = require("../middleware/authorize");
-const { createUser, deleteUser, getUsers } = require("../controller/userController");
+const authenticate = require("../middlewares/authenticate");
+const authorize = require("../middlewares/authorize");
+const { createUser, deleteUser, getUsers } = require("../controllers/userController");
 
 // Admin can create users
 router.get("/", authenticate, authorize('VIEW_USER'), getUsers);

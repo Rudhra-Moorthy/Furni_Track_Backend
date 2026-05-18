@@ -1,7 +1,7 @@
 const pool = require("../config/db");
-const user = require("../query/userQuery");
+const user = require("../repositories/userRepo");
 const { hashPassword } = require("../utils/hash");
-const { addEmployee } = require("../service/employeeService");
+const { addEmployee } = require("../services/employeeService");
 
 // create new user
 const createNewUser = async (data) => {
@@ -114,7 +114,8 @@ const deleteUser = async (id) => {
     return {
       message: "User is successfully deleted.",
     };
-  } catch (err) {f
+  } catch (err) {
+    f;
     await client.query("ROLLBACK");
     throw err;
   } finally {
