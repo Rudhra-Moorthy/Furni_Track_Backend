@@ -20,8 +20,15 @@ router.get(
   productController.getProducts,
 );
 
+router.get(
+  "/:id",
+  authenticate,
+  authorize("VIEW_PRODUCT"),
+  productController.getProduct,
+);
+
 // update request
-router.put(
+router.patch(
   "/:id",
   authenticate,
   authorize("UPDATE_PRODUCT"),
