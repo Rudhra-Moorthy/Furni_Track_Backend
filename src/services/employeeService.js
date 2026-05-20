@@ -16,7 +16,7 @@ const addEmployee = async (client, employeeData) => {
     employment_type,
     gender,
     phone_number,
-    data_of_joining,
+    date_of_joining,
   } = employeeData;
 
   const { id: employment_type_id } = await getEmploymentTypeId(employment_type);
@@ -35,7 +35,7 @@ const addEmployee = async (client, employeeData) => {
     employment_type_id,
     gender,
     phone_number,
-    data_of_joining,
+    date_of_joining,
   ]);
 
   return result.rows[0];
