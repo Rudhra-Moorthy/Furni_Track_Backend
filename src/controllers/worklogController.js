@@ -9,7 +9,7 @@ const createWorklog = async (req, res) => {
             worker,
             carving_person,
             turning_person,
-            product,
+            product_name,
             items_produced,
             work_date
         } = req.body;

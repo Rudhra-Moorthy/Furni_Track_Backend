@@ -52,12 +52,34 @@ const authorize = require("../middlewares/authorize");
  *                          example: Premium Wooden Chair
  * 
  *                      carving_item:
- *                          type: string
- *                          example: Floral Carving
+ *                          type: object
+ *                          properties:
+ *                            name: 
+ *                              type: string
+ *                              example: Floral Carving
+ * 
+ *                            quantity:
+ *                              type: integer
+ *                              example: 2
+ * 
+ *                            unit_price:
+ *                              type: number
+ *                              example: 210
  * 
  *                      turning_item:
- *                          type: string
- *                          example: Round Leg Turning
+ *                          type: object
+ *                          properties:
+ *                            name: 
+ *                              type: string
+ *                              example: Round leg Turning
+ * 
+ *                            quantity:
+ *                              type: integer
+ *                              example: 4
+ * 
+ *                            unit_price:
+ *                              type: number
+ *                              example: 100
  * 
  *      responses: 
  *        201:
@@ -98,21 +120,21 @@ router.post(
  *        - bearerAuth: []
  * 
  *      parameters:
- *        - in: path
+ *        - in: query
  *          name: page
  *          schema:
  *            type: integer
  *          example: 1
  *          description: Current page
  *
- *        - in: path
+ *        - in: query
  *          name: limit
  *          schema: 
  *            type: integer
  *          example: 10
  *          description: Records per page
  * 
- *        - in: path
+ *        - in: query
  *          name: search
  *          schema:
  *            type: string
@@ -205,8 +227,16 @@ router.get(
  *      
  *                    description:
  *                      type: string
- *                      example: Updated deacriptin
- *      
+ *                      example: Updated description
+ * 
+ *                    carving_item:
+ *                      type: string
+ *                      example: updated carving_item
+ * 
+ *                    turning_item:
+ *                      type: string
+ *                      example: updated turning_item 
+ *                          
  *                    catgeory:
  *                      type: string
  *                      example: Furniture
@@ -256,7 +286,7 @@ router.patch(
  * 
  *      responses: 
  *        200: 
- *          description: Product updated successfully
+ *          description: Product deleted successfully
  *      
  *        404:
  *          description: Product not found
