@@ -25,8 +25,8 @@ const addProduct = `
 
 // Creates production item
 const addProductionItem = `
-    INSERT INTO production_items (item_name, work_type_id)
-    VALUES($1, $2)
+    INSERT INTO production_items (item_name, work_type_id, unit_price)
+    VALUES($1, $2, $3)
     RETURNING *;
 `;
 
@@ -137,6 +137,18 @@ const getProduct = `
 
 `;
 
+const getProductId = `
+    SELECT id 
+    FROM products
+    WHERE product_name = $1
+`;
+
+const getProductNames = `
+    SELECT product_name
+    FROM products 
+    WHERE deleted_at IS NULL
+`;
+
 const updateProduct = (fields, index) => `
 
     WITH updatedProduct AS (
@@ -208,4 +220,6 @@ module.exports = {
   deleteProduct,
   getProduct,
   getProducts,
+  getProductNames,
+  getProductId,
 };

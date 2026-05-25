@@ -39,26 +39,40 @@ const addProduct = async (product) => {
 
     console.log(`Carving id: ${carvingType.id}\nTurning id: ${turningType.id}`);
 
+    if(product.carving_item.unit_price <= 0 || product.turning_item.unit_price <= 0) {
+      const err = new Error("Unit price must be greater than 0");
+      err.statusCode(400);
+      throw err;
+    }
+
     // create production items
     const carvingItem = await addProductionItem(
       client,
-      product.carving_item,
+      product.carving_item.name,
       carvingType.id,
+      product.carving_item.unit_price
     );
     const turningItem = await addProductionItem(
       client,
-      product.turning_item,
+      product.turning_item.name,
       turningType.id,
+      product.turning_item.unit_price
     );
 
     // Product Production Mapping
+    if(product.carving_item.quantity <= 0 || product.turning_item.quantity <= 0) {
+      const err = new Error("Quantity must be greater than 0");
+      err.statusCode = 400;
+      throw err;
+    }
+
     await addProductProduction(
       client,
       productResult.id,
       carvingItem.id,
-      1,
+      product.carving_item.quantity || 1,
       turningItem.id,
-      1,
+      product.turning_item.quantity || 1,
     );
 
     await client.query("COMMIT");
@@ -101,12 +115,10 @@ const getProducts = async (page, limit, search) => {
 
 // Update product
 const updateProduct = async (id, data) => {
-
   const client = await pool.connect();
 
   try {
-
-    await client.query('BEGIN');
+    await client.query("BEGIN");
 
     const fields = [];
     const values = [];
@@ -114,22 +126,22 @@ const updateProduct = async (id, data) => {
     let index = 1;
 
     // for product_name
-    if(data.product_name) {
+    if (data.product_name) {
       fields.push(`product_name = $${index++}`);
       values.push(data.product_name);
     }
 
     // for description
-    if(data.description) {
+    if (data.description) {
       fields.push(`description = $${index++}`);
       values.push(data.description);
     }
 
     // for category
-    if(data.category) {
+    if (data.category) {
       const category = await getCategoryId(data.category);
 
-      if(!category) {
+      if (!category) {
         const err = new Error("Category not found");
         err.statusCode = 404;
         throw err;
@@ -140,10 +152,10 @@ const updateProduct = async (id, data) => {
     }
 
     // for sub category
-    if(data.type) {
+    if (data.type) {
       const sub_category = await getSubCategoryId(data.type);
 
-      if(!sub_category) {
+      if (!sub_category) {
         const err = new Error("Type not found");
         err.statusCode = 404;
         throw err;
@@ -160,40 +172,35 @@ const updateProduct = async (id, data) => {
 
     const updated = await client.query(query, values);
 
-    if(updated.rows.length === 0) {
+    if (updated.rows.length === 0) {
       const err = new Error("Product not found");
       err.statusCode = 404;
       throw err;
     }
 
-    await client.query('COMMIT');
+    await client.query("COMMIT");
 
     return productDto(updated.rows[0]);
-
   } catch (err) {
-
-    await client.query('ROLLBACK');
+    await client.query("ROLLBACK");
     throw err;
-
   } finally {
     client.release();
   }
-
-}
+};
 
 // Delete product
 const deleteProduct = async (id) => {
-
   const deleted = await pool.query(productRepo.deleteProduct, [id]);
-  
-  if(deleted.rows.length === 0) {
+
+  if (deleted.rows.length === 0) {
     const err = new Error("Product not found");
     err.statusCode = 404;
     throw err;
   }
 
   return true;
-}
+};
 
 const getCategoryId = async (client, category_name) => {
   const category = await client.query(productRepo.getCategoryId, [
@@ -214,10 +221,11 @@ const getWorkTypeId = async (client, work_name) => {
   return work_type.rows[0];
 };
 
-const addProductionItem = async (client, item_name, work_type_id) => {
+const addProductionItem = async (client, item_name, work_type_id, unit_price) => {
   const items = await client.query(productRepo.addProductionItem, [
     item_name,
     work_type_id,
+    unit_price
   ]);
   return items.rows[0];
 };
@@ -256,10 +264,22 @@ const addProductProduction = async (
   ]);
 };
 
+const getProductId = async (product_name) => {
+  const product = await pool.query(productRepo.getProductId, [product_name]);
+  return product.rows[0];
+};
+
+const getProductNames = async () => {
+  const products = await pool.query(productRepo.getProductNames);
+  return products.rows.map((p) => p.product_name);
+};
+
 module.exports = {
   addProduct,
   getProduct,
   getProducts,
   deleteProduct,
   updateProduct,
+  getProductId,
+  getProductNames,
 };

@@ -168,9 +168,15 @@ const deleteEmployee = async (id) => {
   }
 }
 
+const getEmployeeId = async (name) => {
+  const employee = await pool.query(employeeRepo.getEmployeeIdByName, [name]);
+  return employee.rows[0];
+}
+
 module.exports = {
   addEmployee,
   getEmployees,
   updateEmployee,
   deleteEmployee,
+  getEmployeeId,
 };

@@ -126,10 +126,19 @@ const deleteEmployee = `
     RETURNING *
 `;
 
+const getEmployeeIdByName = `
+    SELECT id 
+    FROM employee_details
+    WHERE 
+        CONCAT(frist_name, ' ', last_name) ILIKE $1 AND 
+        deleted_at IS NULL
+`;
+
 module.exports = {
   createEmployee,
   getEmployees,
   getEmployee,
   updateEmployee,
   deleteEmployee,
+  getEmployeeIdByName,
 };

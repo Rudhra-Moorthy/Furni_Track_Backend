@@ -6,6 +6,7 @@ const loginRouter = require("./routes/loginRouter");
 const userRouter = require("./routes/userRouter");
 const productRouter = require("./routes/productRouter");
 const employeeRouter = require("./routes/employeeRouter");
+const worklogRouter = require("./routes/worklogRouter");
 
 // App
 const app = express();
@@ -19,5 +20,6 @@ app.use("/api/auth", loginRouter);
 app.use("/api/users", userRouter);
 app.use("/api/products", productRouter);
 app.use("/api/employees", employeeRouter);
+app.use("/api/worklogs", worklogRouter);
 
 module.exports = app;
